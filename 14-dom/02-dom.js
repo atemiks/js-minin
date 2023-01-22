@@ -16,61 +16,69 @@ const tasks = [
     },
 ];
 
-const createTasksList = (
-    tasksArray,
-    createTaskItemCallback = createTaskItem
-) => {
-    const tasksList = document.createElement('div');
-    tasksList.className = 'tasks-list';
+class ToDo {
+    constructor(tasksArray) {
+        this.tasks = tasksArray;
+        this.renderToDoList();
+    }
 
-    tasksArray.forEach((taskItem) => {
-        tasksList.appendChild(createTaskItemCallback(taskItem));
-    });
+    renderToDoList() {
+        const tasksArray = this.tasks;
 
-    document.body.append(tasksList);
-};
+        const taskListContainer = document.createElement('div');
 
-const createTaskItem = (task) => {
-    const { id: taskId, completed: taskCompleted, text: taskText } = task;
+        tasksArray.forEach((item) => {
+            taskListContainer.append(this.renderToDoItem(item));
+        });
 
-    const taskItem = document.createElement('div');
-    taskItem.className = 'task-item';
-    taskItem.setAttribute('data-task-id', taskId);
+        document.body.append(taskListContainer);
+    }
 
-    const taskItemMainCotainer = document.createElement('div');
-    taskItemMainCotainer.className = 'task-item__main-container';
+    renderToDoItem({ id: taskID, completed: taskCompleted, text: taskText }) {
+        const taskItemContainer = document.createElement('div');
+        taskItemContainer.classList.add('task-item');
+        taskItemContainer.setAttribute('data-task-id', taskID);
 
-    const taskItemMainContent = document.createElement('div');
-    taskItemMainContent.className = 'task-item__main-content';
+        const taskItemInner = document.createElement('div');
+        taskItemInner.classList.add('task-item__main-container');
 
-    const taskItemForm = document.createElement('form');
-    taskItemForm.className = 'checkbox-form';
+        const taskItemContent = document.createElement('div');
+        taskItemContent.classList.add('task-item__main-content');
 
-    const taskItemCheckbox = document.createElement('input');
-    taskItemCheckbox.className = 'checkbox-form__checkbox';
-    taskItemCheckbox.setAttribute('type', 'checkbox');
-    taskItemCheckbox.setAttribute('id', `task-${taskId}`);
+        const taskItemForm = document.createElement('form');
+        taskItemForm.classList.add('checkbox-form');
 
-    const taskItemLabel = document.createElement('label');
-    taskItemLabel.setAttribute('for', `task-${taskId}`);
+        const taskItemFormCheckbox = document.createElement('input');
+        taskItemFormCheckbox.classList.add('checkbox-form__checkbox');
+        taskItemFormCheckbox.setAttribute('type', 'checkbox');
+        taskItemFormCheckbox.setAttribute('id', taskID);
+        if (taskCompleted) {
+            taskItemFormCheckbox.setAttribute('checked', '');
+        }
 
-    const taskItemText = document.createElement('span');
-    taskItemText.className = 'task-item__text';
-    taskItemText.innerText = taskText;
+        const taskItemFormLabel = document.createElement('label');
+        taskItemFormLabel.setAttribute('for', taskID);
 
-    const taskItemDeleteButton = document.createElement('button');
-    taskItemDeleteButton.className =
-        'task-item__delete-button default-button delete-button';
-    taskItemDeleteButton.textContent = 'Удалить';
-    taskItemDeleteButton.setAttribute('type', 'button');
-    taskItemDeleteButton.setAttribute('data-delete-task-id', '');
+        const taskItemText = document.createElement('span');
+        taskItemText.classList.add('task-item__text');
+        taskItemText.textContent = taskText;
 
-    taskItem.append(taskItemMainCotainer);
-    taskItemMainCotainer.append(taskItemMainContent, taskItemDeleteButton);
-    taskItemMainContent.append(taskItemForm, taskItemText);
-    taskItemForm.append(taskItemCheckbox, taskItemLabel);
+        const taskItemDeleteButton = document.createElement('button');
+        taskItemDeleteButton.classList.add(
+            'task-item__delete-button',
+            'default-button',
+            'delete-button'
+        );
+        taskItemDeleteButton.setAttribute('data-delete-task-id', taskID);
+        taskItemDeleteButton.textContent = 'Удалить';
 
-    return taskItem;
-};
+        taskItemForm.append(taskItemFormCheckbox, taskItemFormLabel);
+        taskItemContent.append(taskItemForm, taskItemText);
+        taskItemInner.append(taskItemContent, taskItemDeleteButton);
+        taskItemContainer.append(taskItemInner);
 
-createTasksList(tasks);
+        return taskItemContainer;
+    }
+}
+
+new ToDo(tasks);

@@ -16,108 +16,123 @@ const tasks = [
     },
 ];
 
-const createTaskOmni = () => {
-    const createTaskFormContainer = document.createElement('form');
-    createTaskFormContainer.className = 'create-task-block';
-    createTaskFormContainer.addEventListener('submit', addNewTask);
-
-    const createTaskInput = document.createElement('input');
-    createTaskInput.className = 'create-task-block__input';
-    createTaskInput.setAttribute('type', 'text');
-    createTaskInput.setAttribute('name', 'createTaskInput');
-    createTaskInput.setAttribute('placeholder', 'Введите текст задачи');
-
-    const createTaskButton = document.createElement('button');
-    createTaskButton.className = 'create-task-block__button';
-    createTaskButton.setAttribute('type', 'submit');
-    createTaskButton.innerText = 'Добавить';
-
-    createTaskFormContainer.append(createTaskInput, createTaskButton);
-    document.body.append(createTaskFormContainer);
-};
-
-const createTasksList = (
-    tasksArray,
-    createTaskItemCallback = createTaskItem
-) => {
-    let tasksList = document.querySelector('.tasks-list');
-
-    if (tasksList) {
-        tasksList.innerHTML = '';
+class ToDo {
+    constructor(tasksArray) {
+        this.tasks = tasksArray;
+        this.omniBoxContainer = undefined;
+        this.omniBoxInput = undefined;
+        this.omniBoxButton = undefined;
+        this.tasksListContainer = undefined;
+        this.render();
     }
 
-    if (!tasksList) {
-        tasksList = document.createElement('div');
-        tasksList.className = 'tasks-list';
+    render() {
+        this.renderOmniBox();
+        this.renderToDoList();
     }
 
-    tasksArray.forEach((taskItem) => {
-        tasksList.appendChild(createTaskItemCallback(taskItem));
-    });
-
-    document.body.append(tasksList);
-};
-
-const createTaskItem = (task) => {
-    const { id: taskId, completed: taskCompleted, text: taskText } = task;
-
-    const taskItem = document.createElement('div');
-    taskItem.className = 'task-item';
-    taskItem.setAttribute('data-task-id', taskId);
-
-    const taskItemMainCotainer = document.createElement('div');
-    taskItemMainCotainer.className = 'task-item__main-container';
-
-    const taskItemMainContent = document.createElement('div');
-    taskItemMainContent.className = 'task-item__main-content';
-
-    const taskItemForm = document.createElement('form');
-    taskItemForm.className = 'checkbox-form';
-
-    const taskItemCheckbox = document.createElement('input');
-    taskItemCheckbox.className = 'checkbox-form__checkbox';
-    taskItemCheckbox.setAttribute('type', 'checkbox');
-    taskItemCheckbox.setAttribute('id', `task-${taskId}`);
-
-    const taskItemLabel = document.createElement('label');
-    taskItemLabel.setAttribute('for', `task-${taskId}`);
-
-    const taskItemText = document.createElement('span');
-    taskItemText.className = 'task-item__text';
-    taskItemText.innerText = taskText;
-
-    const taskItemDeleteButton = document.createElement('button');
-    taskItemDeleteButton.className =
-        'task-item__delete-button default-button delete-button';
-    taskItemDeleteButton.textContent = 'Удалить';
-    taskItemDeleteButton.setAttribute('type', 'button');
-    taskItemDeleteButton.setAttribute('data-delete-task-id', '');
-
-    taskItem.append(taskItemMainCotainer);
-    taskItemMainCotainer.append(taskItemMainContent, taskItemDeleteButton);
-    taskItemMainContent.append(taskItemForm, taskItemText);
-    taskItemForm.append(taskItemCheckbox, taskItemLabel);
-
-    return taskItem;
-};
-
-const addNewTask = (event) => {
-    event.preventDefault();
-    const createTaskForm = event.target;
-    const createTaskInput = event.target.createTaskInput;
-    const createTaskInputValue = createTaskInput.value.trim();
-
-    if (createTaskInputValue) {
-        tasks.push({
-            td: String(Date.now()),
-            completed: false,
-            text: createTaskInputValue,
+    renderOmniBox() {
+        this.omniBoxContainer = document.createElement('form');
+        this.omniBoxContainer.classList.add('create-task-block');
+        this.omniBoxContainer.addEventListener('submit', (event) => {
+            event.preventDefault();
+            this.handleOmniBox();
         });
 
-        createTaskForm.reset();
-        createTasksList(tasks);
-    }
-};
+        this.omniBoxInput = document.createElement('input');
+        this.omniBoxInput.classList.add('create-task-block__input');
+        this.omniBoxInput.setAttribute('type', 'input');
+        this.omniBoxInput.setAttribute('name', 'createTaskInput');
+        this.omniBoxInput.setAttribute('placeholder', 'Введите текст задачи');
+        this.omniBoxInput.setAttribute('required', 'required');
 
-createTaskOmni();
-createTasksList(tasks);
+        this.omniBoxButton = document.createElement('button');
+        this.omniBoxButton.classList.add('create-task-block__button');
+        this.omniBoxButton.setAttribute('type', 'submit');
+        this.omniBoxButton.setAttribute('name', 'createTaskButton');
+        this.omniBoxButton.textContent = 'Добавить';
+
+        this.omniBoxContainer.append(this.omniBoxInput, this.omniBoxButton);
+
+        document.body.append(this.omniBoxContainer);
+    }
+
+    handleOmniBox() {
+        const omniBoxInputValue = this.omniBoxInput.value.trim();
+
+        if (omniBoxInputValue) {
+            this.addNewTask(omniBoxInputValue);
+            this.renderToDoList();
+        }
+    }
+
+    renderToDoList() {
+        this.tasksListContainer
+            ? (this.tasksListContainer.innerHTML = '')
+            : (this.tasksListContainer = document.createElement('div'));
+
+        this.tasks.forEach((item) => {
+            this.tasksListContainer.append(this.renderToDoItem(item));
+        });
+
+        document.body.append(this.tasksListContainer);
+    }
+
+    renderToDoItem({ id: taskID, completed: taskCompleted, text: taskText }) {
+        const taskItemContainer = document.createElement('div');
+        taskItemContainer.classList.add('task-item');
+        taskItemContainer.setAttribute('data-task-id', taskID);
+
+        const taskItemInner = document.createElement('div');
+        taskItemInner.classList.add('task-item__main-container');
+
+        const taskItemContent = document.createElement('div');
+        taskItemContent.classList.add('task-item__main-content');
+
+        const taskItemForm = document.createElement('form');
+        taskItemForm.classList.add('checkbox-form');
+
+        const taskItemFormCheckbox = document.createElement('input');
+        taskItemFormCheckbox.classList.add('checkbox-form__checkbox');
+        taskItemFormCheckbox.setAttribute('type', 'checkbox');
+        taskItemFormCheckbox.setAttribute('id', taskID);
+        if (taskCompleted) {
+            taskItemFormCheckbox.setAttribute('checked', '');
+        }
+
+        const taskItemFormLabel = document.createElement('label');
+        taskItemFormLabel.setAttribute('for', taskID);
+
+        const taskItemText = document.createElement('span');
+        taskItemText.classList.add('task-item__text');
+        taskItemText.textContent = taskText;
+
+        const taskItemDeleteButton = document.createElement('button');
+        taskItemDeleteButton.classList.add(
+            'task-item__delete-button',
+            'default-button',
+            'delete-button'
+        );
+        taskItemDeleteButton.setAttribute('data-delete-task-id', taskID);
+        taskItemDeleteButton.textContent = 'Удалить';
+
+        taskItemForm.append(taskItemFormCheckbox, taskItemFormLabel);
+        taskItemContent.append(taskItemForm, taskItemText);
+        taskItemInner.append(taskItemContent, taskItemDeleteButton);
+        taskItemContainer.append(taskItemInner);
+
+        return taskItemContainer;
+    }
+
+    addNewTask(taskText) {
+        this.tasks.push({
+            id: String(Date.now()),
+            completed: false,
+            text: taskText,
+        });
+
+        this.omniBoxInput.value = '';
+    }
+}
+
+new ToDo(tasks);

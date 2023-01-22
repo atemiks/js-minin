@@ -23,12 +23,15 @@ class ToDo {
         this.omniBoxInput = undefined;
         this.omniBoxButton = undefined;
         this.tasksListContainer = undefined;
+        this.modalContainer = undefined;
+        this.targetTaskID = undefined;
         this.render();
     }
 
     render() {
         this.renderOmniBox();
         this.renderToDoList();
+        this.renderModal();
     }
 
     renderOmniBox() {
@@ -82,6 +85,9 @@ class ToDo {
         this.tasksListContainer
             ? (this.tasksListContainer.innerHTML = '')
             : (this.tasksListContainer = document.createElement('div'));
+        this.tasksListContainer.addEventListener('click', (event) => {
+            this.handleToDoList(event);
+        });
 
         this.tasks.forEach((item) => {
             this.tasksListContainer.append(this.renderToDoItem(item));
@@ -136,6 +142,16 @@ class ToDo {
         return taskItemContainer;
     }
 
+    handleToDoList(event) {
+        const { target } = event;
+        const targetContainer = target.closest('.task-item');
+        this.targetTaskID = targetContainer.getAttribute('data-task-id');
+
+        if (target.classList.contains('delete-button')) {
+            this.showModal();
+        }
+    }
+
     renderErrorMessage(errorText) {
         let errorContainer = document.querySelector('.error-message-block');
 
@@ -156,6 +172,62 @@ class ToDo {
         }
     }
 
+    renderModal() {
+        this.modalContainer = document.createElement('div');
+        this.modalContainer.classList.add(
+            'modal-overlay',
+            'modal-overlay_hidden'
+        );
+        this.modalContainer.addEventListener('click', (event) => {
+            this.handleModal(event);
+        });
+
+        const modalContent = document.createElement('div');
+        modalContent.className = 'delete-modal';
+
+        const modalQuestion = document.createElement('h3');
+        modalQuestion.classList.add('delete-modal__question');
+        modalQuestion.textContent =
+            'Вы действительно хотите удалить эту задачу?';
+
+        const modalButtonsWrapper = document.createElement('div');
+        modalButtonsWrapper.classList.add('delete-modal__buttons');
+
+        const modalButtonCancel = document.createElement('button');
+        modalButtonCancel.classList.add(
+            'delete-modal__button',
+            'delete-modal__cancel-button'
+        );
+        modalButtonCancel.setAttribute('type', 'button');
+        modalButtonCancel.textContent = 'Отмена';
+
+        const modalButtonConfirm = document.createElement('button');
+        modalButtonConfirm.classList.add(
+            'delete-modal__button',
+            'delete-modal__confirm-button'
+        );
+        modalButtonConfirm.setAttribute('type', 'button');
+        modalButtonConfirm.textContent = 'Удалить';
+
+        this.modalContainer.append(modalContent);
+        modalContent.append(modalQuestion, modalButtonsWrapper);
+        modalButtonsWrapper.append(modalButtonCancel, modalButtonConfirm);
+
+        document.body.append(this.modalContainer);
+    }
+
+    handleModal(event) {
+        const { target } = event;
+        if (!target.classList.contains('delete-modal__confirm-button')) {
+            this.hideModal();
+        }
+
+        if (target.classList.contains('delete-modal__confirm-button')) {
+            this.deleteTask();
+            this.hideModal();
+        }
+    }
+
     addNewTask(taskText) {
         this.tasks.push({
             id: String(Date.now()),
@@ -164,6 +236,21 @@ class ToDo {
         });
 
         this.omniBoxInput.value = '';
+    }
+
+    deleteTask(taskID = this.targetTaskID) {
+        this.tasks = this.tasks.filter((task) => {
+            return task.id !== taskID;
+        });
+        this.renderToDoList();
+    }
+
+    showModal() {
+        this.modalContainer.classList.remove('modal-overlay_hidden');
+    }
+
+    hideModal() {
+        this.modalContainer.classList.add('modal-overlay_hidden');
     }
 }
 
