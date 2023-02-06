@@ -1,15 +1,5 @@
 const ALBUM_URL = 'https://jsonplaceholder.typicode.com/albums';
 
-const getAlbums = async (url) => {
-    try {
-        const response = await fetch(url);
-        const data = await response.json();
-        renderAlbums(data);
-    } catch (error) {
-        console.log('error', error);
-    }
-};
-
 const renderAlbums = async () => {
     document.body.insertAdjacentHTML(
         'afterbegin',
